@@ -14,7 +14,8 @@ Searching articles:
 
 Scraping articles:
 
-1. main.py takes the article url and attempts to scrape it 
+1. 
+2. WebScraper takes the article url and attempts to scrape it 
 	Trafilatura for metadata
 	Newspaper3k for content
 	tldextract for domain (with source map)
