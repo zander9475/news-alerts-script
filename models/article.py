@@ -13,7 +13,6 @@ class Article:
     keyword: str = "Manual"
     author: List[str] = field(default_factory=list)
     url: Optional[str] = None
-    lead: Optional[str] = None
     id: Optional[str] = None
 
     def __post_init__(self):
@@ -27,7 +26,6 @@ class Article:
         """Converts the Article object to a dictionary."""
         return {
             "title": self.title,
-            "lead": self.lead,
             "content": self.content,
             "source": self.source,
             "url": self.url,

@@ -53,7 +53,6 @@ class GoogleSearcher:
                     articles.append({
                         "title": item["title"],
                         "url": item["link"],
-                        "source": item.get("displayLink", ""),
                         "keyword": keyword,
                     })
 

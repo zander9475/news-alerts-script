@@ -11,3 +11,10 @@ Searching articles:
 	- adds the normalized url to article dict and current session list
 	- creates and saves article (by passing to manager)
 6. Manager takes Article object and saves it to .csv file
+
+Scraping articles:
+
+1. main.py takes the article url and attempts to scrape it 
+	Trafilatura for metadata
+	Newspaper3k for content
+	tldextract for domain (with source map)
