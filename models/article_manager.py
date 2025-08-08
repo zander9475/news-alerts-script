@@ -1,21 +1,16 @@
 import pandas as pd
 from .article import Article
 from ..utils import normalize_url
-from PySide6.QtCore import Signal, QObject
 from typing import Optional
 import ast
 from titlecase import titlecase
 from pandas.errors import EmptyDataError
 
-class ArticleManager(QObject):
+class ArticleManager:
     """
     Manages the collection of all Article objects.
     """
-    # Custom signals
-    articles_changed = Signal()
-    article_updated = Signal(Article)
-
-    def __init__(self, filepath="data/full_articles.csv"):
+    def __init__(self, filepath="data/seen_articles.csv"):
         """
         Initializes the ArticleModel.
         
@@ -165,10 +160,9 @@ class ArticleManager(QObject):
         self.articles_changed.emit()
 
 
-    def save_articles(self):
+    def save_article(self):
         """
-        Saves the Article list as a CSV file, overwriting the old file.
-        Returns True on success, False on failure.
+        Saves Article object to .csv file.
         """
         if not self.articles:
             print("No articles to save.")

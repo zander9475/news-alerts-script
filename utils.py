@@ -14,7 +14,7 @@ def normalize_url(url):
     path = parsed.path.rstrip('/') # remove trailing slash
     return f"{domain}{path}"
 
-def is_article(url, title):
+def is_potential_article(url, title):
     """
     Determines if a result is likely to be a news article using layered checks.
     Returns (True, "") if it's an article.
@@ -27,19 +27,11 @@ def is_article(url, title):
     # --- RULE 1: High-Priority Exclusions ---
     high_priority_path_exclusions = [
         "/print-edition", "/digital-print-edition", "/subscribe",
-        "/archive", "/home", "/index", "/category", "/podcast", 
-        "/video", "/sport", "/athletic"
+        "/archive", "/home", "/index", "/category"
     ]
     for p in high_priority_path_exclusions:
         if p in path:
             return False, f"High-priority excluded path: '{p}'"
-        
-    high_priority_title_exclusions = [
-        "live:", "live blog", "live updates"
-    ]
-    for term in high_priority_title_exclusions:
-        if term in title:
-            return False, f"High-priority excluded title: '{term}'"
 
     # --- RULE 2: Check for strong positive signals ---
     # If a URL has a date or a clear article pattern, approve it immediately.
@@ -49,16 +41,15 @@ def is_article(url, title):
         "/jul/", "/aug/", "/sep/", "/oct/", "/nov/", "/dec/"
     ]
     if any(pattern in path for pattern in article_patterns):
-        return True, "" # It's an article, no more checks needed.
+        return True, ""
 
     # --- RULE 3: Check for general negative signals ---
     # Path-based exclusions (less critical than high-priority ones)
     excluded_paths = [
         "/user", "/author", "/tags", "/topic", "/section",
         "/profile", "/account", "/login", "/signup", "/register",
-        "/about", "/contact", "/by", "/newsletter", "/people",
-        "scmp.com/news/china/diplomacy", "/quotes", "/company",
-        "/earnings", "scmp.com/opinion"
+        "/about", "/contact", "/by", "/newsletter", "/people", 
+        "/quotes", "/company", "/earnings", 
     ]
     for p in excluded_paths:
         if p in path:
@@ -66,9 +57,7 @@ def is_article(url, title):
 
     # Title-based exclusions
     excluded_title_terms = [
-        "sign up", "topic:", "author:",
-        "homepage", "section:", "your daily", "briefing", 
-        "bulletin", "alert", "update", "digest"
+        "sign up", "author:", "homepage", "your daily", "digest"
     ]
     for term in excluded_title_terms:
         if term in title:
