@@ -1,12 +1,11 @@
 import os
 import json
 from dotenv import load_dotenv
-from app.services.google_searcher import GoogleSearcher
-from app.services.web_scraper import WebScraper
+from services.google_searcher import GoogleSearcher
+from services.web_scraper import WebScraper
 from utils import normalize_url
-from app.models.article_manager import ArticleManager
-from app.models.article import Article
-
+from models.duplicate_manager import DuplicateManager
+from models.article import Article
 
 # Load environment variables from .env file
 load_dotenv()
@@ -18,7 +17,7 @@ def main():
     # Get env variables
     api_key = os.getenv("API_KEY")
     cse_id = os.getenv("CSE_ID")
-    if not api_key and not cse_id:
+    if not api_key or not cse_id:
         raise ValueError("Environment variables not found in .env file")
     
     # Get keywords
@@ -27,25 +26,60 @@ def main():
         
     # Initialize session objects
     searcher = GoogleSearcher(api_key=api_key, cse_id=cse_id, keywords=keywords)
-    manager = ArticleManager()
+    manager = DuplicateManager()
     scraper = WebScraper()
 
-    # Search articles and save metadata to csv file
-    for item in searcher.search():
-        # Normalize url for duplicate checking
-        normalized = normalize_url(item['url'])
+    # Step 1: Search for new articles and save metadata
+    session_articles = run_search(searcher, manager)
 
-        # Check duplicates against current session and previous sessions
-        if searcher.is_duplicate(normalized) or manager.is_duplicate(normalized):
-            continue
+    # Step 2: Scrape articles
+    for article in session_articles:
+        handle_article_scrape(scraper, article)
 
-        # Add normalized URL to item dict and session list
-        item["normalized_url"] = normalized
-        searcher.seen_urls.add(normalized)
+    # Step 3: Build and send email
 
-        # Create article and save metadata
-        article = Article(**item)
-        manager.save_new_article(article)
+def run_search(searcher, manager):
+    """
+    Calls searching service from GoogleSearcher. 
+    Passes each article's url to the manager for duplicate checking and saving.
+    """
+    new_articles = []
+
+    for article_data in searcher.search():
+        # Normalize url and pass to DuplicateManager
+        # DuplicateManager's add_url() returns true if not duplicat
+        normalized = normalize_url(article_data['url'])
+        is_new_article = manager.add_url(normalized)
+
+        if is_new_article:
+            # Add normalized url to article dictionary
+            article_data["normalized_url"] = normalized
+
+            # Create article object from dictionary and append to list
+            article_obj = Article(**article_data)
+            new_articles.append(article_obj)
+
+def handle_article_scrape(scraper, article):
+    """
+    Passes article's URL to scraping service.
+    If scrape successful, adds new fields and passes to manager for saving.
+    """
+    try:
+        # Attempt to scrape
+        article_data = scraper.scrape_url(article.url)
+        
+        # Add/update article fields
+        if article_data("title") is not None:
+            article.title = article_data("title")
+        article.source = article_data("source")
+        article.author = article_data("author")
+        article.published_date = article_data("published_date")
+        article.content = article_data("content")
+        print(f"Successfully scraped: {article.title}")
+
+    except Exception as e:
+        print(f"Failed to scrape {article.title}. Reason: {e}")
+
 
 if __name__ == "__main__":
     main()

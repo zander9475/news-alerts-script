@@ -8,11 +8,13 @@ class Article:
     Data class representing a single article.
     """
     title: str
-    content: str
+    url: str
+    normalized_url: str
     source: str
-    keyword: str = "Manual"
+    keyword: str
     author: List[str] = field(default_factory=list)
-    url: Optional[str] = None
+    content: Optional[str] = None
+    published_date: Optional[str] = None
     id: Optional[str] = None
 
     def __post_init__(self):
@@ -26,9 +28,11 @@ class Article:
         """Converts the Article object to a dictionary."""
         return {
             "title": self.title,
-            "content": self.content,
             "source": self.source,
             "url": self.url,
-            "author": self.author,
-            "keyword": self.keyword
+            "normalized_url": self.normalized_url,
+            "author": str(self.author),
+            "keyword": self.keyword,
+            "content": self.content if self.content is not None else "",
+            "published_date": self.published_date if self.published_date is not None else ""
         }

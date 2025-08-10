@@ -14,7 +14,6 @@ class GoogleSearcher:
         self.api_key = api_key
         self.cse_id = cse_id
         self.keywords = keywords
-        self.seen_urls = set()
         
         # Create a Session object for multiple calls to API (HTTP Keep-Alive)
         self.session = requests.Session()
@@ -72,6 +71,3 @@ class GoogleSearcher:
             print("No new articles found across all keywords.")
        
         return articles
-    
-    def is_duplicate(self, normalized_url: str) -> bool:
-        return normalized_url in self.seen_urls

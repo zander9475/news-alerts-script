@@ -19,7 +19,6 @@ SOURCE_MAP = {
     "washingtonpost": "Washington Post",
     "cnn": "CNN",
     "bloomberglaw": "Bloomberg"
-
 }
 
 class WebScraper:
@@ -33,53 +32,40 @@ class WebScraper:
         Returns a dictionary of article data on success.
         Raises an ArticleException on failure.
         """
-        try:
-            # Fetch raw HTML using Trafilatura
-            html = trafilatura.fetch_url(url)
-            if not html:
-                raise ArticleException("Could not fetch page")
-            
-            # Extract metadata (trafilatura)
-            meta_json = trafilatura.extract(html, include_meta=True, output_format='json')
-            meta = json.loads(meta_json) if meta_json else {}
+        # Fetch raw HTML using Trafilatura
+        html = trafilatura.fetch_url(url)
+        if not html:
+            raise ArticleException("Could not fetch page")
+        
+        # Extract metadata (trafilatura)
+        meta_json = trafilatura.extract(html, include_meta=True, output_format='json')
+        meta = json.loads(meta_json) if meta_json else {}
 
-            # Extract content with Newspaper3k
-            article = Article(url, browser_user_agent = 'Mozilla/5.0')
-            article.download()
-            article.parse()
-            
-            if not article.text:
-                raise ArticleException("Scrape resulted in no content")
-            
-            # Capitalize article title
-            raw_title = meta.get('title', '')
-            capitalized_title = titlecase(raw_title) if raw_title else "Untitled"
+        # Extract content with Newspaper3k
+        article = Article(url, browser_user_agent = 'Mozilla/5.0')
+        article.download()
+        article.parse()
+        
+        if not article.text:
+            raise ArticleException("Scrape resulted in no content")
+        
+        # Capitalize article title
+        raw_title = meta.get('title', '')
+        capitalized_title = titlecase(raw_title) if raw_title else None
 
-            # Extract the base domain name from the URL
-            source_domain = self.tld_extractor(url).domain
+        # Extract the base domain name from the URL
+        source_domain = self.tld_extractor(url).domain
 
-            # Look up source domain in the map. If not found, use capitalized domain name.
-            formatted_source = self.source_map.get(source_domain, source_domain.title())
+        # Look up source domain in the map. If not found, use capitalized domain name.
+        formatted_source = self.source_map.get(source_domain, source_domain.title())
 
-            return {
-                "title": capitalized_title or "Untitled",
-                "author": meta.get('author', ''),
-                "source": formatted_source,
-                "published_date": self.format_pub_date(meta),
-                "content": article.text,
-                "url": url
-            }
-        except Exception as e:
-            if '404' in str(e):
-                raise ArticleException("This url either does not exist, or the website blocks web scraping by bots." \
-                                        "\nClick title to verify if article exists.")
-            elif '403' in str(e):
-                raise ArticleException("This website does not allow web scraping by bots.")
-            elif '401' in str(e):
-                raise ArticleException("This article is paywalled or requires a login\n(Usually a Google sign-in).")
-            else:
-                # For all other errors, re-raise the original exception
-                raise ArticleException(e)
+        return {
+            "title": capitalized_title,
+            "author": meta.get('author', ''),
+            "source": formatted_source,
+            "published_date": self.format_pub_date(meta),
+            "content": article.text,
+        }
             
     def format_pub_date(self, meta):
         date_str = meta.get('date')

@@ -1,20 +1,20 @@
 Searching articles:
 
-1. main.py: load env variables, keywords, initialize GoogleSearcher, call searching function
-2. find_articles: searches articles per keyword. foreach keyword, loops over till no articles found
+1. main.py: load env variables, keywords, initialize GoogleSearcher, call searching function search()
+2. search(): searches articles per keyword. foreach keyword, loops over till no articles found
 3. when an article is found, its details are added to a list of article dictionaries
-   additionally, url is added to seen_urls
 4. When done searching, returns the list of article dicts to main.py
 5. main.py then takes this list of article dicts and does the following:
 	- normalizes url for duplicate checking
-	- performs duplicate check against both current and previous sessions
-	- adds the normalized url to article dict and current session list
-	- creates and saves article (by passing to manager)
+	- creates Article object and passes it to manager
 6. Manager takes Article object and saves it to .csv file
+	- Performs duplicate check against current and previous sessions
+	- Adds normalized url to seen urls set
+	- saves article
 
 Scraping articles:
 
-1. 
+1. main.py: initializes WebScraper, calls service on each article (within for loop)
 2. WebScraper takes the article url and attempts to scrape it 
 	Trafilatura for metadata
 	Newspaper3k for content

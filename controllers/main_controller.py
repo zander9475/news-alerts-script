@@ -1,5 +1,5 @@
 from .article_controller import ArticleController
-from ..models.article_manager import ArticleManager
+from ..models.duplicate_manager import ArticleManager
 from ..views.widgets.search_dialog import SearchDialog
 from ..services.google_searcher import search_articles
 from ..services.email_builder import build_email
