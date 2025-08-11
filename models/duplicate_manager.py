@@ -1,21 +1,16 @@
-import pandas as pd
-from .article import Article
-import ast
-from pandas.errors import EmptyDataError
-import csv
 import os
 
 class DuplicateManager:
     """
     Manages the collection of all seen URLs for duplicate checking.
     """
-    def __init__(self, filepath="data/seen_articles.csv"):
+    def __init__(self, filepath="data/seen_urls.txt"):
         """
         Initializes the DuplicateManager.
         @param filepath (str): Path to the CSV file containing articles.
         """
         self.filepath = filepath
-        self.seen_urls = self._load_urls(self)
+        self.seen_urls = self._load_urls()
 
     def _load_urls(self):
         """
@@ -38,8 +33,12 @@ class DuplicateManager:
         Adds a new URL to the set and appends it to the file, if not already a duplicate
         """
         if not self._is_duplicate(url):
-            self.seen_urls.add()
+            self.seen_urls.add(url)
+
+            # Ensure the directory exists before trying to open the file
+            os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
             
+            # Add url to the file
             with open(self.filepath, 'a', encoding='utf-8') as f:
                 f.write(url + '\n')
             return True

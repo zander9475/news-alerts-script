@@ -1,5 +1,5 @@
 import requests
-from ..utils import is_potential_article
+from utils import is_potential_article
 
 class GoogleSearcher:
     def __init__(self, api_key: str, cse_id: str, keywords: list):
@@ -20,52 +20,69 @@ class GoogleSearcher:
 
     def search(self): # Eventually change to loop over keyword till no articles found
         """
-        Finds relevant articles using list of keywords
+        Finds relevant articles using list of keywords, fetching all available pages of results.
         """
         articles = []
         for keyword in self.keywords:
             print(f"Searching for new articles for keyword: '{keyword}'...")
-            try:
-                # Set API parameters
-                params = {
-                    "key": self.api_key,
-                    "cx": self.cse_id,
-                    "q": keyword,
-                    "dateRestrict": "d1"
-                }
-                # Query the API using session
-                response = self.session.get("https://www.googleapis.com/customsearch/v1", params=params)
-                response.raise_for_status()
+            start_index = 1 # Begin with first page
 
-                # Convert raw JSON response to a structured format
-                for item in response.json().get("items", []):
-                    url = item["link"]
-                    title = item.get("title", "")
-                    is_valid_article, reason = is_potential_article(url, title)
+            while True:
+                try:
+                    # Set API parameters
+                    params = {
+                        "key": self.api_key,
+                        "cx": self.cse_id,
+                        "q": keyword,
+                        "dateRestrict": "d1",
+                        "start": start_index
+                    }
+                    # Query the API using session
+                    response = self.session.get("https://www.googleapis.com/customsearch/v1", params=params)
+                    response.raise_for_status()
+                    search_results = response.json()
 
-                    # Skip non-articles and print the reason why
-                    if not is_valid_article:
-                        print(f"Skipping non-article ({reason}): {title} | {url}")
-                        continue
+                    # Convert raw JSON response to a structured format
+                    for item in search_results.get("items", []):
+                        url = item["link"]
+                        title = item.get("title", "")
+                        is_valid_article, reason = is_potential_article(url, title)
 
-                    # Add article
-                    articles.append({
-                        "title": item["title"],
-                        "url": item["link"],
-                        "keyword": keyword,
-                    })
+                        # Skip non-articles and print the reason why
+                        if not is_valid_article:
+                            print(f"Skipping non-article ({reason}): {title} | {url}")
+                            continue
 
-            except requests.exceptions.RequestException as e:
-                # Provide more detail for specific errors
-                if isinstance(e, requests.exceptions.HTTPError):
-                    if e.response.status_code == 429:
-                        print("  > Reason: You have likely exceeded your daily API quota.")
+                        # Add article
+                        articles.append({
+                            "title": item["title"],
+                            "url": item["link"],
+                            "keyword": keyword,
+                        })
+
+                    # Check if there is a next page of results
+                    # 'nextPage': List containing a dictionary of attributes regarding the next page of results
+                    next_page_info = search_results.get('queries', {}).get('nextPage')
+                    if next_page_info:
+                        # Pull the start index from the 'startIndex' key
+                        start_index = next_page_info[0]['startIndex']
+                        print(f"Found next page, starting search from result {start_index}")
                     else:
-                        print(f"  > Reason: HTTP Error {e.response.status_code} ({e.response.reason})")
-                else:
-                    print(f"  > Reason: A network error occurred: {e}")
-                    
-                continue
+                        # No more pages for this keyword, break the while loop
+                        print(f"No more pages found for '{keyword}'.")
+                        break
+
+                except requests.exceptions.RequestException as e:
+                    # Provide more detail for specific errors
+                    if isinstance(e, requests.exceptions.HTTPError):
+                        if e.response.status_code == 429:
+                            print("  > Reason: You have likely exceeded your daily API quota.")
+                        else:
+                            print(f"  > Reason: HTTP Error {e.response.status_code} ({e.response.reason})")
+                    else:
+                        print(f"  > Reason: A network error occurred: {e}")
+                        
+                    break
 
         if not articles:
             print("No new articles found across all keywords.")

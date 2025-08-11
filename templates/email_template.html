@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style>
+        body {
+            font-family: "Times New Roman", sans-serif;
+            color: black;
+            word-wrap: break-word;
+        }
+        .article-content, .article-content * {
+        font-family: "Times New Roman", serif !important;
+        font-size: 12pt !important;
+        margin: 0;
+        padding: 0;
+        }
+        .article-content p {
+            font-family: "Times New Roman", serif;
+            font-size: 12pt;
+        }
+        .article-title {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 0;
+            display: block;
+        }
+        .article-author {
+            font-weight: bold;
+        }
+        .article-pubdate {
+            font-weight: bold;
+        }
+        .article-keyword {
+            font-weight: bold
+        }
+    </style>
+</head>
+<body>
+    <div class="article-content">
+        <a href="{{ article.url }}" class="article-title">{{ article.title }}</a>
+
+        {% if article.author and article.author|length > 0 %}
+        <div class="article-author">By {{ article.author | join(', ') }}</div>
+        {% endif %}
+
+        {% if article.pub_date %}
+        <div class="article-pubdate">{{ article.pub_date }}</div>
+        {% endif %}
+
+        <div class="article-keyword">Keyword: {{ article.keyword }}</div>
+        <br>
+
+        <div> {{ article.content | safe }} </div>
+    </div>
+</body>
+</html>

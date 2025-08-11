@@ -6,6 +6,7 @@ from services.web_scraper import WebScraper
 from utils import normalize_url
 from models.duplicate_manager import DuplicateManager
 from models.article import Article
+from services.email_builder import EmailBuilder
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,15 +29,23 @@ def main():
     searcher = GoogleSearcher(api_key=api_key, cse_id=cse_id, keywords=keywords)
     manager = DuplicateManager()
     scraper = WebScraper()
+    builder = EmailBuilder()
 
     # Step 1: Search for new articles and save metadata
     session_articles = run_search(searcher, manager)
+
+    # Check if list of articles is empty and exit program if it is
+    if not session_articles:
+        print("No new articles found. Exiting.")
+        return
 
     # Step 2: Scrape articles
     for article in session_articles:
         handle_article_scrape(scraper, article)
 
     # Step 3: Build and send email
+    for article in session_articles:
+        builder.build_email(article)
 
 def run_search(searcher, manager):
     """
@@ -59,6 +68,8 @@ def run_search(searcher, manager):
             article_obj = Article(**article_data)
             new_articles.append(article_obj)
 
+    return new_articles
+
 def handle_article_scrape(scraper, article):
     """
     Passes article's URL to scraping service.
@@ -69,12 +80,12 @@ def handle_article_scrape(scraper, article):
         article_data = scraper.scrape_url(article.url)
         
         # Add/update article fields
-        if article_data("title") is not None:
-            article.title = article_data("title")
-        article.source = article_data("source")
-        article.author = article_data("author")
-        article.published_date = article_data("published_date")
-        article.content = article_data("content")
+        if article_data["title"] is not None:
+            article.title = article_data["title"]
+        article.source = article_data["source"]
+        article.author = article_data["author"]
+        article.pub_date = article_data["pub_date"]
+        article.content = article_data["content"]
         print(f"Successfully scraped: {article.title}")
 
     except Exception as e:

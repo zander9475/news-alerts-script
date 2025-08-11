@@ -71,3 +71,12 @@ def is_potential_article(url, title):
     
     # If it passes all checks, assume it's an article.
     return True, ""
+
+def format_for_html(text):
+    """
+    Converts text paragraphs (separated by newlines) to <br><br> for Outlook.
+    """
+    if not isinstance(text, str):
+        return ""
+    paragraphs = text.strip().split('\n')
+    return '<br><br>'.join(p.strip() for p in paragraphs if p.strip())
