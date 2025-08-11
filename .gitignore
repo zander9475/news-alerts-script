@@ -29,7 +29,7 @@ MANIFEST
 output/
 data/
 
-# Word files or similar
+# Word files
 *.doc
 *.docx
 
