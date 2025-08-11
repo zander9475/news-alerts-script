@@ -29,6 +29,10 @@ MANIFEST
 output/
 data/
 
+# Word files or similar
+*.doc
+*.docx
+
 # IDE / Editor specific files
 .vscode/
 .idea/
