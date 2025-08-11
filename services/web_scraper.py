@@ -124,7 +124,7 @@ class WebScraper:
                 # Some other error: re-raise
                 raise
 
-        # Extract content with Newspaper4k
+        # Extract content with Newspaper3k
         article = Article(url)
         article.set_html(html)
         article.parse()

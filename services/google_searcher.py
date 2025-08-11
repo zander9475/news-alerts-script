@@ -18,7 +18,7 @@ class GoogleSearcher:
         # Create a Session object for multiple calls to API (HTTP Keep-Alive)
         self.session = requests.Session()
 
-    def search(self): # Eventually change to loop over keyword till no articles found
+    def search(self):
         """
         Finds relevant articles using list of keywords, fetching all available pages of results.
         """
