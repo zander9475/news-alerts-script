@@ -27,7 +27,7 @@ def is_potential_article(url, title):
     # --- RULE 1: High-Priority Exclusions ---
     high_priority_path_exclusions = [
         "/print-edition", "/digital-print-edition", "/subscribe",
-        "/archive", "/home", "/index", "/category"
+        "/archive", "/home", "/index", "/category", "/video"
     ]
     for p in high_priority_path_exclusions:
         if p in path:

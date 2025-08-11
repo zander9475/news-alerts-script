@@ -1,8 +1,6 @@
-import trafilatura
 from newspaper import Article, ArticleException
 from titlecase import titlecase
 import tldextract
-import json
 from datetime import datetime
 import sys
 import requests
@@ -124,9 +122,9 @@ class WebScraper:
                 # Some other error: re-raise
                 raise
 
-        # Extract content with Newspaper3k
+        # Extract content with Newspaper4k
         article = Article(url)
-        article.set_html(html)
+        article.download(input_html=html)
         article.parse()
         
         if not article.text:
