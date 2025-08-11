@@ -97,6 +97,7 @@ class WebScraper:
             try:
                 response = requests.get(url_to_fetch, headers=self.headers)
                 response.raise_for_status()
+                response.encoding = 'utf-8'
                 html = response.text
                 if not html.strip():
                     raise ArticleException("Empty HTML returned")
@@ -135,14 +136,12 @@ class WebScraper:
 
         # Clean author list
         cleaned_authors = self._clean_author_string(article.authors)
-        print (str(cleaned_authors))
 
         # Extract the base domain name from the URL
         source_domain = self.tld_extractor(url).domain
 
         # Look up source domain in the map. If not found, use capitalized domain name.
         formatted_source = self.source_map.get(source_domain, source_domain.title())
-        print(formatted_source)
 
         # Formate date
         formatted_date = self._format_pub_date(article.publish_date)
