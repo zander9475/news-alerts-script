@@ -11,7 +11,7 @@ class EmailBuilder:
         self.template = self.env.get_template("email_template.html")
 
     @staticmethod
-    def _create_outlook_draft(subject: str, html_body: str):
+    def _send_outlook_email(subject: str, html_body: str, to_address: str):
         """
         Opens a new Outlook draft with the given subject and HTML body.
         """
@@ -20,9 +20,10 @@ class EmailBuilder:
             mail = outlook.CreateItem(0)  # 0 = olMailItem
             mail.Subject = subject
             mail.HTMLBody = html_body
-            mail.Display()  # Opens the draft for editing/sending
+            mail.To = to_address
+            mail.Send()
         except Exception as e:
-            print(f"Error creating Outlook draft: {e}")
+            print(f"Error sending email: {e}")
 
 
     def build_email(self, article):
@@ -45,7 +46,7 @@ class EmailBuilder:
             subject = f"NEWS ALERT: {article.title}"
 
             # Create Outlook draft email
-            self._create_outlook_draft(subject=subject, html_body=html)
+            self._send_outlook_email(subject=subject, html_body=html, to_address="bstoll@doc.gov")
             
             return True
         

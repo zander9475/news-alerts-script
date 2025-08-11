@@ -32,6 +32,14 @@ def is_potential_article(url, title):
     for p in high_priority_path_exclusions:
         if p in path:
             return False, f"High-priority excluded path: '{p}'"
+        
+    high_priority_title_exclusions = [
+        "sport", "stock"
+    ]
+
+    for term in high_priority_title_exclusions:
+        if term in title:
+            return False, f"High-priority excluded title keyword: '{term}'"
 
     # --- RULE 2: Check for strong positive signals ---
     # If a URL has a date or a clear article pattern, approve it immediately.
@@ -66,7 +74,7 @@ def is_potential_article(url, title):
     # --- RULE 4: Final structural checks ---
     if path.count('/') < 2:
         return False, "Path too shallow"
-    if len(path) <= 30:
+    if len(path) <= 20:
         return False, "Path too short"
     
     # If it passes all checks, assume it's an article.

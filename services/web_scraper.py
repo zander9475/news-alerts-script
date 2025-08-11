@@ -1,4 +1,4 @@
-from newspaper import Article, ArticleException
+from newspaper import Article, ArticleException # type:ignore
 from titlecase import titlecase
 import tldextract
 from datetime import datetime
