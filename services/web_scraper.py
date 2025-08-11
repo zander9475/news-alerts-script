@@ -87,72 +87,54 @@ class WebScraper:
 
     def scrape_url(self, url):
         """
-        Tries live fetch first; if blocked or error, falls back to Google Cache.
+        Fetches and scrapes a URL.
         Returns article data dict on success, raises ArticleException on failure.
         """
-        def fetch(url_to_fetch):
-            """
-            Fetches the URL and returns the HTML content.
-            """
-            try:
-                response = requests.get(url_to_fetch, headers=self.headers)
-                response.raise_for_status()
-                response.encoding = 'utf-8'
-                html = response.text
-                if not html.strip():
-                    raise ArticleException("Empty HTML returned")
-                return html
-            except requests.RequestException as e:
-                raise ArticleException(f"Could not fetch page: {e}")
-        
-        # Try live URL first
         try:
-            html = fetch(url)
-        except ArticleException as e_live:
-            # On certain errors ('401', etc), try Google Cache fallback
-            if isinstance(e_live.args[0], str) and any(code in e_live.args[0] for code in ['401', '403', '404']):
-                cache_url = f"https://webcache.googleusercontent.com/search?q=cache:{url}"
-                try:
-                    html = fetch(cache_url)
-                except ArticleException as e_cache:
-                    # Both failed
-                    raise ArticleException(
-                        f"Failed live URL ({e_live}) and Google Cache ({e_cache})"
-                    )
-            else:
-                # Some other error: re-raise
-                raise
+            response = requests.get(url, headers=self.headers, timeout=15)
+            response.raise_for_status()
+            response.encoding = 'utf-8'
+            html = response.text
+            if not html.strip():
+                raise ArticleException("Empty HTML returned")
 
-        # Extract content with Newspaper4k
-        article = Article(url)
-        article.download(input_html=html)
-        article.parse()
+            # Extract content with Newspaper4k
+            article = Article(url)
+            article.download(input_html=html)
+            article.parse()
+            
+            if not article.text:
+                raise ArticleException("Scrape resulted in no content")
+            
+            # Capitalize article title
+            capitalized_title = titlecase(article.title) if article.title else None
+
+            # Clean author list
+            cleaned_authors = self._clean_author_string(article.authors)
+
+            # Extract the base domain name from the URL
+            source_domain = self.tld_extractor(url).domain
+
+            # Look up source domain in the map. If not found, use capitalized domain name.
+            formatted_source = self.source_map.get(source_domain, source_domain.title())
+
+            # Formate date
+            formatted_date = self._format_pub_date(article.publish_date)
+
+            return {
+                "title": capitalized_title,
+                "author": cleaned_authors,
+                "source": formatted_source,
+                "pub_date": formatted_date,
+                "content": article.text,
+            }
         
-        if not article.text:
-            raise ArticleException("Scrape resulted in no content")
-        
-        # Capitalize article title
-        capitalized_title = titlecase(article.title) if article.title else None
-
-        # Clean author list
-        cleaned_authors = self._clean_author_string(article.authors)
-
-        # Extract the base domain name from the URL
-        source_domain = self.tld_extractor(url).domain
-
-        # Look up source domain in the map. If not found, use capitalized domain name.
-        formatted_source = self.source_map.get(source_domain, source_domain.title())
-
-        # Formate date
-        formatted_date = self._format_pub_date(article.publish_date)
-
-        return {
-            "title": capitalized_title,
-            "author": cleaned_authors,
-            "source": formatted_source,
-            "pub_date": formatted_date,
-            "content": article.text,
-        }
+        except requests.RequestException as e:
+            # Catch any network-related errors
+            raise ArticleException(f"Could not fetch page: {e}")
+        except Exception as e:
+            # Catch any other errors (parsing, etc.)
+            raise ArticleException(f"An unexpected error occurred during scraping: {e}")
             
     def _format_pub_date(self, publish_date):
         if not publish_date:
