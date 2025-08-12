@@ -27,14 +27,14 @@ def is_potential_article(url, title):
     # --- RULE 1: High-Priority Exclusions ---
     high_priority_path_exclusions = [
         "/print-edition", "/digital-print-edition", "/subscribe",
-        "/archive", "/home", "/index", "/category", "/video"
+        "/archive", "/home", "/index", "/category", "/video", "/show"
     ]
     for p in high_priority_path_exclusions:
         if p in path:
             return False, f"High-priority excluded path: '{p}'"
         
     high_priority_title_exclusions = [
-        "sport", "stock"
+        "sport", "stock market"
     ]
 
     for term in high_priority_title_exclusions:
