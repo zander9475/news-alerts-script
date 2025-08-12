@@ -20,7 +20,6 @@ rss_feeds:
   financialtimes: https://www.ft.com/?format=rss
   cnbc: https://www.cnbc.com/id/100003114/device/rss/rss.html
   cnn: http://rss.cnn.com/rss/cnn_topstories.rss
-  nbc: https://www.nbcnews.com/id/3032091/device/rss/rss.xml
   abc: https://abcnews.go.com/abcnews/politicsheadlines
   bbc: http://feeds.bbci.co.uk/news/rss.xml
   usatoday: https://www.usatoday.com/rss/news/
