@@ -12,6 +12,7 @@ class RssFetcher:
         """
         self.rss_feeds = rss_urls
         self.keywords = [kw.lower() for kw in keywords]
+        print(f"[RssFetcher] Initialized with {len(self.rss_feeds)} feeds and {len(self.keywords)} keywords.")
 
     def _match_keyword(self, text):
         """
@@ -23,6 +24,7 @@ class RssFetcher:
         
         for keyword in self.keywords:
             if keyword in text.lower():
+                print(f"[Keyword Match] Found keyword '{keyword}' in text.")
                 return keyword
         return None
     
@@ -60,13 +62,15 @@ class RssFetcher:
         """
         articles = []
         for source_name, feed_url in self.rss_feeds.items():
+            print(f"[Fetch] Parsing RSS feed from source: {source_name}")
             try:
                 feed = feedparser.parse(feed_url)
                 sorted_entries = sorted(
                 feed.entries,
                 key=lambda e: e.get('published_parsed') or e.get('updated_parsed') or time.gmtime(0),
                 reverse=True
-            )
+                )
+                print(f"[Fetch] Retrieved {len(sorted_entries)} entries from {source_name}.")
             except Exception as e:
                 print(f"Failed to parse RSS feed {source_name}: {e}")
                 continue
@@ -91,4 +95,5 @@ class RssFetcher:
                     )
                     articles.append(article)
 
+        print(f"[Fetch] Total matched articles collected: {len(articles)}")
         return articles
