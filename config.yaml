@@ -22,5 +22,4 @@ rss_feeds:
   cnn: http://rss.cnn.com/rss/cnn_topstories.rss
   abc: https://abcnews.go.com/abcnews/politicsheadlines
   bbc: http://feeds.bbci.co.uk/news/rss.xml
-  usatoday: https://www.usatoday.com/rss/news/
   foxbusiness: https://feeds.foxbusiness.com/foxbusiness/latest
