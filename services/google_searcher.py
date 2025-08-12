@@ -77,11 +77,11 @@ class GoogleSearcher:
                         # Provide more detail for specific errors
                         if isinstance(e, requests.exceptions.HTTPError):
                             if e.response.status_code == 429:
-                                print("Reason: You have likely exceeded your daily API quota.")
+                                print("Error: You have likely exceeded your daily API quota.")
                             else:
-                                print(f"Reason: HTTP Error {e.response.status_code} ({e.response.reason})")
+                                print(f"HTTP Error {e.response.status_code} ({e.response.reason})")
                         else:
-                            print(f"Reason: A network error occurred: {e}")
+                            print(f"A network error occurred: {e}")
                             
                         break
 

@@ -1,7 +1,8 @@
 import os
-import json
+import yaml
 from dotenv import load_dotenv
 from services.google_searcher import GoogleSearcher
+from services.rss_fetcher import RssFetcher
 from services.web_scraper import WebScraper
 from utils import normalize_url
 from models.duplicate_manager import DuplicateManager
@@ -21,30 +22,40 @@ def main():
     if not api_key or not cse_id:
         raise ValueError("Environment variables not found in .env file")
     
-    # Get keywords
-    with open('keywords.json', 'r', encoding='utf-8') as f:
-        keywords = json.load(f)
+    # Load config.yaml
+    with open('config.yaml', 'r', encoding='utf-8') as f:
+        config = yaml.safe_load(f)
+
+    rss_keywords = config.get('rss_keywords', [])
+    api_keywords = config.get('api_keywords', [])
+    rss_feeds = config.get('rss_feeds', {})
         
-    # Initialize session objects
-    searcher = GoogleSearcher(api_key=api_key, cse_id=cse_id, keywords=keywords)
+    # Initialize managers and services
     manager = DuplicateManager()
+    searcher = GoogleSearcher(api_key=api_key, cse_id=cse_id, keywords=api_keywords)
+    rss_fetcher = RssFetcher(rss_urls=rss_feeds, keywords=rss_keywords)
     scraper = WebScraper()
     builder = EmailBuilder()
 
     # Step 1: Search for new articles and save metadata
     session_articles = run_search(searcher, manager)
 
-    # Check if list of articles is empty and exit program if it is
-    if not session_articles:
+    # Step 1.5: RSS fetching
+    rss_articles = run_rss_fetch(rss_fetcher, manager)
+
+    # Combine Google search and RSS
+    all_new_articles = session_articles + rss_articles
+
+    if not all_new_articles:
         print("No new articles found. Exiting.")
         return
 
     # Step 2: Scrape articles
-    for article in session_articles:
+    for article in all_new_articles:
         handle_article_scrape(scraper, article)
 
     # Step 3: Build and send email
-    for article in session_articles:
+    for article in all_new_articles:
         builder.build_email(article)
 
 def run_search(searcher, manager):
@@ -56,17 +67,27 @@ def run_search(searcher, manager):
 
     for article_data in searcher.search():
         # Normalize url and pass to DuplicateManager
-        # DuplicateManager's add_url() returns true if not duplicat
         normalized = normalize_url(article_data['url'])
-        is_new_article = manager.add_url(normalized)
-
-        if is_new_article:
+        if manager.add_url(normalized):
             # Add normalized url to article dictionary
             article_data["normalized_url"] = normalized
 
             # Create article object from dictionary and append to list
             article_obj = Article(**article_data)
             new_articles.append(article_obj)
+
+    return new_articles
+
+def run_rss_fetch(rss_fetcher, manager):
+    """
+    Calls RSS fetching service from RssFetcher.
+    Passes each article's normalized url to the manager for duplicate checking and saving.
+    """
+    new_articles = []
+    rss_articles = rss_fetcher.fetch_articles()
+    for article in rss_articles:
+        if manager.add_url(article.normalized_url):
+            new_articles.append(article)
 
     return new_articles
 

@@ -1,0 +1,31 @@
+rss_keywords:
+  - "Commerce Secretary"
+  - "Commerce Department"
+  - "Lutnick"
+  - "Howard Lutnick"
+  - "Department of Commerce"
+  - "Secretary of Commerce"
+  - "Commerce"
+  - "Secretary"
+
+api_keywords:
+  - "Howard Lutnick"
+  - "Department of Commerce"
+
+rss_feeds:
+  foxnews: https://feeds.foxnews.com/foxnews/latest
+  reuters: http://feeds.reuters.com/reuters/topNews
+  wsj: https://feeds.a.dj.com/rss/RSSMarketsMain.xml
+  apnews: https://apnews.com/apf-topnews?format=xml
+  washingtonpost: https://feeds.washingtonpost.com/rss/politics
+  politico: https://www.politico.com/rss/politics08.xml
+  nytimes: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+  bloomberg: https://www.bloomberg.com/feed/podcast/etf-report.xml
+  financialtimes: https://www.ft.com/?format=rss
+  cnbc: https://www.cnbc.com/id/100003114/device/rss/rss.html
+  cnn: http://rss.cnn.com/rss/cnn_topstories.rss
+  nbc: https://www.nbcnews.com/id/3032091/device/rss/rss.xml
+  abc: https://abcnews.go.com/abcnews/topstories/rss
+  bbc: http://feeds.bbci.co.uk/news/rss.xml
+  usatoday: https://www.usatoday.com/rss/news/
+  foxbusiness: https://feeds.foxbusiness.com/foxbusiness/latest
