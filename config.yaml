@@ -12,14 +12,14 @@ api_keywords:
 
 rss_feeds:
   foxnews: https://feeds.foxnews.com/foxnews/latest
-  wsj: https://feeds.a.dj.com/rss/RSSMarketsMain.xml
+  wsj: https://feeds.content.dowjones.io/public/rss/socialpoliticsfeed
   washingtonpost: https://feeds.washingtonpost.com/rss/politics
   politico: https://rss.politico.com/politics-news.xml
-  nytimes: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+  nytimes: https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml
   bloomberg: https://feeds.bloomberg.com/politics/news.rss
   financialtimes: https://www.ft.com/?format=rss
-  cnbc: https://www.cnbc.com/id/100003114/device/rss/rss.html
-  cnn: http://rss.cnn.com/rss/cnn_topstories.rss
+  cnbc: https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000113
+  cnn: http://rss.cnn.com/rss/cnn_allpolitics.rss
   abc: https://abcnews.go.com/abcnews/politicsheadlines
-  bbc: http://feeds.bbci.co.uk/news/rss.xml
+  bbc: https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml
   foxbusiness: https://feeds.foxbusiness.com/foxbusiness/latest
