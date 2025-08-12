@@ -87,6 +87,7 @@ def run_rss_fetch(rss_fetcher, manager):
     rss_articles = rss_fetcher.fetch_articles()
     for article in rss_articles:
         if manager.add_url(article.normalized_url):
+            print(f"[run_rss_fetch] New article added: {article.normalized_url}")
             new_articles.append(article)
 
     return new_articles
