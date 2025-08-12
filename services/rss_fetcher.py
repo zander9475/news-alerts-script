@@ -1,6 +1,7 @@
 import feedparser
 from models.article import Article
 from utils import normalize_url
+import time
 
 class RssFetcher:
     def __init__(self, rss_urls, keywords):
@@ -61,11 +62,16 @@ class RssFetcher:
         for source_name, feed_url in self.rss_feeds.items():
             try:
                 feed = feedparser.parse(feed_url)
+                sorted_entries = sorted(
+                feed.entries,
+                key=lambda e: e.get('published_parsed') or e.get('updated_parsed') or time.gmtime(0),
+                reverse=True
+            )
             except Exception as e:
                 print(f"Failed to parse RSS feed {source_name}: {e}")
                 continue
 
-            for entry in feed.entries:
+            for entry in sorted_entries:
                 matched_keyword = self._entry_match_keyword(entry)
                 if matched_keyword:
                     title = entry.get("title", "")
