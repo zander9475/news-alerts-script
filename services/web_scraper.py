@@ -97,6 +97,15 @@ class WebScraper:
             html = response.text
             if not html.strip():
                 raise ArticleException("Empty HTML returned")
+            
+            # Detect possible bot-block pages
+            block_indicators = [
+                "captcha", "cloudflare", "access denied", "verify you are human",
+                "restricted access", "bot protection"
+            ]
+            if any(indicator.lower() in html.lower() for indicator in block_indicators):
+                raise ArticleException(f"Page may have blocked the bot — detected indicator in HTML: {url}")
+
 
             # Extract content with Newspaper4k
             article = Article(url)
@@ -129,12 +138,18 @@ class WebScraper:
                 "content": article.text,
             }
         
+        except requests.Timeout:
+            raise ArticleException(f"Request to {url} timed out.")
+        except requests.ConnectionError:
+            raise ArticleException(f"Connection error — could not reach {url}.")
+        except requests.HTTPError as e:
+            raise ArticleException(f"HTTP error {e.response.status_code} — {e.response.reason} at {url}.")
         except requests.RequestException as e:
-            # Catch any network-related errors
-            raise ArticleException(f"Could not fetch page: {e}")
+            raise ArticleException(f"Request failed — {e}")
+        except ArticleException:
+            raise  # Already descriptive
         except Exception as e:
-            # Catch any other errors (parsing, etc.)
-            raise ArticleException(f"An unexpected error occurred during scraping: {e}")
+            raise ArticleException(f"Unexpected error during scraping of {url}: {e}")
             
     def _format_pub_date(self, publish_date):
         if not publish_date:

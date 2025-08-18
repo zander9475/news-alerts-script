@@ -1,14 +1,14 @@
 rss_keywords:
-  - "Commerce Secretary"
-  - "Commerce Department"
-  - "Howard Lutnick"
+  - '"Commerce Secretary"'
+  - '"Commerce Department"'
+  - '"Howard Lutnick"'
   - "Lutnick"
-  - "Department of Commerce"
-  - "Secretary of Commerce"
+  - '"Department of Commerce"'
+  - '"Secretary of Commerce"'
 
 api_keywords:
-  - "Howard Lutnick"
-  - "Department of Commerce"
+  - '"Howard Lutnick"'
+  - '"Department of Commerce"'
 
 rss_feeds:
   foxnews: https://feeds.foxnews.com/foxnews/latest
