@@ -113,7 +113,7 @@ class WebScraper:
         try:
             page = self.browser.new_page(
                 user_agent=self.headers["User-Agent"],
-                headers={"Accept-Language": self.headers["Accept-Language"]}
+                extra_http_headers={"Accept-Language": self.headers["Accept-Language"]}
             )
             
             # Navigate to URL
