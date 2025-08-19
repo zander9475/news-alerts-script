@@ -3,7 +3,7 @@ from titlecase import titlecase
 import tldextract
 from datetime import datetime
 import sys
-from playwright.sync_api import sync_playwright, Error as PlaywrightError
+import requests
 from fake_useragent import UserAgent
 
 # Map domain names to source titles
@@ -39,22 +39,6 @@ class WebScraper:
             "User-Agent": self.user_agent.random,
             "Accept-Language": "en-US,en;q=0.9",
         }
-
-        # Initialize Playwright and launch a persistent browser
-        try:
-            self.playwright = sync_playwright().start()
-            self.browser = self.playwright.chromium.launch(headless=True)
-            print("Playwright browser initialized successfully.")
-        except Exception as e:
-            print(f"Error initializing Playwright: {e}")
-
-    def close(self):
-        """Closes the browser and stops the Playwright instance."""
-        if hasattr(self, 'browser') and self.browser:
-            self.browser.close()
-        if hasattr(self, 'playwright') and self.playwright:
-            self.playwright.stop()
-        print("Playwright browser closed.")
 
     def _clean_author_string(self, authors_raw):
         """
@@ -109,18 +93,13 @@ class WebScraper:
         Returns a dictionary of article data on success.
         Raises an ArticleException on failure.
         """
-        page = None
         try:
-            page = self.browser.new_page(
-                user_agent=self.headers["User-Agent"],
-                extra_http_headers={"Accept-Language": self.headers["Accept-Language"]}
-            )
-            
-            # Navigate to URL
-            page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            response = requests.get(url, headers=self.headers, timeout=15)
+            response.raise_for_status()
+            response.encoding = 'utf-8'
 
             # Get html content
-            html = page.content()
+            html = response.text
             if not html.strip():
                 raise ArticleException("Empty HTML returned")
 
@@ -163,21 +142,18 @@ class WebScraper:
                 "content": article.text,
             }
         
-        except PlaywrightError as e:
-            if "net::ERR_CONNECTION_REFUSED" in str(e):
-                 raise ArticleException(f"Connection error — could not reach {url}.")
-            elif "Timeout" in str(e):
-                raise ArticleException(f"Request to {url} timed out via Playwright.")
-            else:
-                raise ArticleException(f"Playwright error for {url}: {e}")
+        except requests.Timeout:
+            raise ArticleException(f"Request to {url} timed out.")
+        except requests.ConnectionError:
+            raise ArticleException(f"Connection error — could not reach {url}.")
+        except requests.HTTPError as e:
+            raise ArticleException(f"HTTP error {e.response.status_code} — {e.response.reason} at {url}.")
+        except requests.RequestException as e:
+            raise ArticleException(f"Request failed — {e}")
         except ArticleException:
-            raise
+            raise  # Already descriptive
         except Exception as e:
             raise ArticleException(f"Unexpected error during scraping of {url}: {e}")
-        finally:
-            # Ensure page closes when done
-            if page:
-                page.close()
             
     def _format_pub_date(self, publish_date):
         if not publish_date:
