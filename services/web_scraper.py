@@ -134,7 +134,7 @@ class WebScraper:
 
             # Extract content with Newspaper4k
             article = Article(url)
-            article.download(input_html=html)
+            article.set_html(html)
             article.parse()
             
             if not article.text:
