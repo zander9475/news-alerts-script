@@ -3,40 +3,58 @@ from titlecase import titlecase
 import tldextract
 from datetime import datetime
 import sys
-import requests
+from playwright.sync_api import sync_playwright, Error as PlaywrightError
+from fake_useragent import UserAgent
 
 # Map domain names to source titles
 SOURCE_MAP = {
-    "apnews": "Associated Press",
-    "nytimes": "New York Times",
-    "wsj": "Wall Street Journal",
-    "politico": "POLITICO",
-    "ft": "Financial Times",
-    "cnbc": "CNBC",
-    "scmp": "South China Morning Post",
     "foxnews": "Fox News",
+    "reuters": "Reuters",
+    "wsj": "Wall Street Journal",
+    "apnews": "Associated Press",
     "washingtonpost": "Washington Post",
+    "politico": "POLITICO",
+    "nytimes": "New York Times",
+    "bloomberg": "Bloomberg",
+    "financialtimes": "Financial Times",
+    "cnbc": "CNBC",
     "cnn": "CNN",
-    "bloomberglaw": "Bloomberg"
+    "nbcnews": "NBC",
+    "abcnews": "ABC",
+    "bbc": "BBC",
+    "usatoday": "USA TODAY",
+    "foxbusiness": "Fox Business"
 }
 
 class WebScraper:
-    def __init__(self, user_agent=None):
+    def __init__(self):
         self.source_map = SOURCE_MAP
         self.tld_extractor = tldextract.TLDExtract()
 
         # Set user agent (to avoid website blocks)
-        self.user_agent = user_agent or (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/122.0.0.0 Safari/537.36"
-        )
+        self.user_agent = UserAgent()
 
-        # Common request headers for both tools
+        # Set request headers
         self.headers = {
-            "User-Agent": self.user_agent,
+            "User-Agent": self.user_agent.random,
             "Accept-Language": "en-US,en;q=0.9",
         }
+
+        # Initialize Playwright and launch a persistent browser
+        try:
+            self.playwright = sync_playwright().start()
+            self.browser = self.playwright.chromium.launch(headless=True)
+            print("Playwright browser initialized successfully.")
+        except Exception as e:
+            print(f"Error initializing Playwright: {e}")
+
+    def close(self):
+        """Closes the browser and stops the Playwright instance."""
+        if hasattr(self, 'browser') and self.browser:
+            self.browser.close()
+        if hasattr(self, 'playwright') and self.playwright:
+            self.playwright.stop()
+        print("Playwright browser closed.")
 
     def _clean_author_string(self, authors_raw):
         """
@@ -87,17 +105,25 @@ class WebScraper:
 
     def scrape_url(self, url):
         """
-        Fetches and scrapes a URL.
-        Returns article data dict on success, raises ArticleException on failure.
+        Tries to scrape a single URL.
+        Returns a dictionary of article data on success.
+        Raises an ArticleException on failure.
         """
+        page = None
         try:
-            response = requests.get(url, headers=self.headers, timeout=15)
-            response.raise_for_status()
-            response.encoding = 'utf-8'
-            html = response.text
+            page = self.browser.new_page(
+                user_agent=self.headers["User-Agent"],
+                headers={"Accept-Language": self.headers["Accept-Language"]}
+            )
+            
+            # Navigate to URL
+            page.goto(url, wait_until="domcontentloaded", timeout=30000)
+
+            # Get html content
+            html = page.content()
             if not html.strip():
                 raise ArticleException("Empty HTML returned")
-            
+
             # Detect possible bot-block pages
             block_indicators = [
                 "captcha", "cloudflare", "access denied", "verify you are human",
@@ -105,7 +131,6 @@ class WebScraper:
             ]
             if any(indicator.lower() in html.lower() for indicator in block_indicators):
                 raise ArticleException(f"Page may have blocked the bot — detected indicator in HTML: {url}")
-
 
             # Extract content with Newspaper4k
             article = Article(url)
@@ -127,7 +152,7 @@ class WebScraper:
             # Look up source domain in the map. If not found, use capitalized domain name.
             formatted_source = self.source_map.get(source_domain, source_domain.title())
 
-            # Formate date
+            # Format date
             formatted_date = self._format_pub_date(article.publish_date)
 
             return {
@@ -138,18 +163,21 @@ class WebScraper:
                 "content": article.text,
             }
         
-        except requests.Timeout:
-            raise ArticleException(f"Request to {url} timed out.")
-        except requests.ConnectionError:
-            raise ArticleException(f"Connection error — could not reach {url}.")
-        except requests.HTTPError as e:
-            raise ArticleException(f"HTTP error {e.response.status_code} — {e.response.reason} at {url}.")
-        except requests.RequestException as e:
-            raise ArticleException(f"Request failed — {e}")
+        except PlaywrightError as e:
+            if "net::ERR_CONNECTION_REFUSED" in str(e):
+                 raise ArticleException(f"Connection error — could not reach {url}.")
+            elif "Timeout" in str(e):
+                raise ArticleException(f"Request to {url} timed out via Playwright.")
+            else:
+                raise ArticleException(f"Playwright error for {url}: {e}")
         except ArticleException:
-            raise  # Already descriptive
+            raise
         except Exception as e:
             raise ArticleException(f"Unexpected error during scraping of {url}: {e}")
+        finally:
+            # Ensure page closes when done
+            if page:
+                page.close()
             
     def _format_pub_date(self, publish_date):
         if not publish_date:

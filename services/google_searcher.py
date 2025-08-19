@@ -47,6 +47,7 @@ class GoogleSearcher:
                         for item in search_results.get("items", []):
                             url = item["link"]
                             title = item.get("title", "")
+                            source = item.get("displayLink", "")
                             is_valid_article, reason = is_potential_article(url, title)
 
                             # Skip non-articles and print the reason why
@@ -56,8 +57,9 @@ class GoogleSearcher:
 
                             # Add article
                             articles.append({
-                                "title": item["title"],
-                                "url": item["link"],
+                                "title": title,
+                                "url": url,
+                                "source": source,
                                 "keyword": keyword,
                             })
 

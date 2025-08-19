@@ -24,6 +24,9 @@
             margin-bottom: 0;
             display: block;
         }
+        .article-source {
+            font-weight: bold;
+        }
         .article-author {
             font-weight: bold;
         }
@@ -38,6 +41,10 @@
 <body>
     <div class="article-content">
         <a href="{{ article.url }}" class="article-title">{{ article.title }}</a>
+
+        {% if article.source and article.source|length > 0 %}
+        <div class="article-source">By {{ article.source | join(', ') }}</div>
+        {% endif %}
 
         {% if article.author and article.author|length > 0 %}
         <div class="article-author">By {{ article.author | join(', ') }}</div>
