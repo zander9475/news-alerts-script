@@ -24,7 +24,7 @@ class EmailBuilder:
             email['Subject'] = subject
             email['From'] = from_address
             email['To'] = to_address
-            email.set_content(html_body)
+            email.add_alternative(html_body, subtype='html')
 
             # Connect to Office 365's SMTP server and send email
             with smtplib.SMTP('smtp.office365.com', 587) as server:
@@ -56,7 +56,7 @@ class EmailBuilder:
             subject = f"NEWS ALERT: {article.title}"
 
             # Create and send email
-            self._send_email(subject=subject, html_body=html, to_address="example@domain.com", from_address=self.from_address, password=self.password)
+            self._send_email(subject=subject, html_body=html, to_address="bstoll@doc.gov", from_address=self.from_address, password=self.password)
             
             return True
         
