@@ -1,5 +1,25 @@
 from urllib.parse import urlparse
 
+# Map domain names to source titles
+SOURCE_MAP = {
+    "foxnews": "Fox News",
+    "reuters": "Reuters",
+    "wsj": "Wall Street Journal",
+    "apnews": "Associated Press",
+    "washingtonpost": "Washington Post",
+    "politico": "POLITICO",
+    "nytimes": "New York Times",
+    "bloomberg": "Bloomberg",
+    "ft": "Financial Times",
+    "cnbc": "CNBC",
+    "cnn": "CNN",
+    "nbcnews": "NBC",
+    "abcnews": "ABC",
+    "bbc": "BBC",
+    "usatoday": "USA TODAY",
+    "foxbusiness": "Fox Business"
+}
+
 def normalize_url(url):
     """Strips a URL down to just domain and path for duplicate checking.
     Example: nytimes.com/2025/07/31/us/politics/white-house-ballroom-trump.html
@@ -28,7 +48,7 @@ def is_potential_article(url, title):
     high_priority_path_exclusions = [
         "/print-edition", "/digital-print-edition", "/subscribe", 
         "/stock-market" "/archive", "/home", "/index", "/category", 
-        "/video", "/show", "/podcast", "/cnbc-latest-video-news"
+        "/video", "/show", "/podcast", "/cnbc-latest-video-news", "/sitemap"
     ]
     for p in high_priority_path_exclusions:
         if p in path:

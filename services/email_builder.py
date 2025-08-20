@@ -46,7 +46,7 @@ class EmailBuilder:
             subject = f"NEWS ALERT: {article.title}"
 
             # Create Outlook draft email
-            self._send_outlook_email(subject=subject, html_body=html, to_address="hamlet.vasquez@bis.doc.gov")
+            self._send_outlook_email(subject=subject, html_body=html, to_address="example@domain.com")
             
             return True
         

@@ -42,11 +42,9 @@
     <div class="article-content">
         <a href="{{ article.url }}" class="article-title">{{ article.title }}</a>
 
-        <!-- Article source (currently buggy)
         {% if article.source and article.source|length > 0 %}
-        <div class="article-source">By {{ article.source | join(', ') }}</div>
+        <div class="article-source">{{ article.source }}</div>
         {% endif %}
-        -->
 
         {% if article.author and article.author|length > 0 %}
         <div class="article-author">By {{ article.author | join(', ') }}</div>

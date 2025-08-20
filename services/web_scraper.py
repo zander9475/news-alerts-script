@@ -5,31 +5,12 @@ from datetime import datetime
 import sys
 import requests
 from fake_useragent import UserAgent
-
-# Map domain names to source titles
-SOURCE_MAP = {
-    "foxnews": "Fox News",
-    "reuters": "Reuters",
-    "wsj": "Wall Street Journal",
-    "apnews": "Associated Press",
-    "washingtonpost": "Washington Post",
-    "politico": "POLITICO",
-    "nytimes": "New York Times",
-    "bloomberg": "Bloomberg",
-    "financialtimes": "Financial Times",
-    "cnbc": "CNBC",
-    "cnn": "CNN",
-    "nbcnews": "NBC",
-    "abcnews": "ABC",
-    "bbc": "BBC",
-    "usatoday": "USA TODAY",
-    "foxbusiness": "Fox Business"
-}
+from utils import SOURCE_MAP
+import re
 
 class WebScraper:
     def __init__(self):
         self.source_map = SOURCE_MAP
-        self.tld_extractor = tldextract.TLDExtract()
 
         # Set user agent (to avoid website blocks)
         self.user_agent = UserAgent()
@@ -48,42 +29,29 @@ class WebScraper:
             return []
 
         cleaned_names = []
-        junk_phrases = ["Updated On", "By"]
+        junk_phrases = ["By", "From"]
 
-        # Loop through each string in the author list provided by newspaper3k
         for raw_string in authors_raw:
             # Remove any junk phrases from the string
             for phrase in junk_phrases:
                 raw_string = raw_string.replace(phrase, "")
 
-            # Split each string by commas in case it accidentally contains multiple names
-            names = raw_string.split(',')
+            # Split the string in case a string contains multiple names
+            # e.g. "John Smith and Jane Doe" becomes ["John Smith", "Jane Doe"]
+            names = re.split(r'(?:,|and|&)')
 
-            # Add the cleaned names to cleaned names list
+            # Add cleaned names to list
             for name in names:
                 clean_name = name.strip()
-                if clean_name:
-                    cleaned_names.append(clean_name)
+
+                # Skip empty or long strings (likely not names)
+                if not clean_name or len(clean_name.split()) > 5:
+                    continue
+
+                cleaned_names.append(clean_name)
                 
-        # Remove duplicate names
-        unique_names = []
-        for name in cleaned_names:
-            if name not in unique_names:
-                unique_names.append(name)
-                
-        # Remove combined names (e.g. "John Doe Jane Smith")
-        if len(unique_names) > 1:
-            combined_names = []
-            # Loop through list
-            for name in unique_names:
-                # For each name, loop through rest of list
-                for other_name in unique_names:
-                    # Combined name if name (outer loop) contains another name
-                    if other_name in name and other_name != name:
-                        combined_names.append(name)
-            # Include only names not found in combined names
-            final_names = [name for name in unique_names if name not in combined_names]
-            return final_names
+        # Remove duplicates while preserving order
+        unique_names = list(dict.fromkeys(cleaned_names))
         
         return unique_names
 
@@ -103,15 +71,7 @@ class WebScraper:
             if not html.strip():
                 raise ArticleException("Empty HTML returned")
 
-            # Detect possible bot-block pages
-            block_indicators = [
-                "captcha", "cloudflare", "access denied", "verify you are human",
-                "restricted access", "bot protection"
-            ]
-            if any(indicator.lower() in html.lower() for indicator in block_indicators):
-                raise ArticleException(f"Page may have blocked the bot — detected indicator in HTML: {url}")
-
-            # Extract content with Newspaper4k
+            # Extract content with Newspaper3k
             article = Article(url)
             article.set_html(html)
             article.parse()
@@ -126,7 +86,7 @@ class WebScraper:
             cleaned_authors = self._clean_author_string(article.authors)
 
             # Extract the base domain name from the URL
-            source_domain = self.tld_extractor(url).domain
+            source_domain = tldextract.extract(url).domain
 
             # Look up source domain in the map. If not found, use capitalized domain name.
             formatted_source = self.source_map.get(source_domain, source_domain.title())
@@ -151,7 +111,7 @@ class WebScraper:
         except requests.RequestException as e:
             raise ArticleException(f"Request failed — {e}")
         except ArticleException:
-            raise  # Already descriptive
+            raise
         except Exception as e:
             raise ArticleException(f"Unexpected error during scraping of {url}: {e}")
             
@@ -179,7 +139,7 @@ class WebScraper:
             else:
                 fmt = '%-m/%-d/%Y'  # macOS/Linux
 
-            # Format as M/D/YYYY
+            # Format as M(M)/D(D)/YYYY string
             return dt.strftime(fmt)
         except Exception:
             return None
