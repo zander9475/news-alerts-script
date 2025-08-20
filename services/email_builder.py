@@ -1,5 +1,6 @@
 from jinja2 import Environment, FileSystemLoader
-import win32com.client
+import smtplib
+from email.message import EmailMessage
 from utils import format_for_html
 
 class EmailBuilder:
@@ -11,17 +12,25 @@ class EmailBuilder:
         self.template = self.env.get_template("email_template.html")
 
     @staticmethod
-    def _send_outlook_email(subject: str, html_body: str, to_address: str):
+    def _send_outlook_email(subject: str, html_body: str, to_address: str, from_address: str, password):
         """
         Opens a new Outlook draft with the given subject and HTML body.
         """
         try:
-            outlook = win32com.client.Dispatch('Outlook.Application')
-            mail = outlook.CreateItem(0)  # 0 = olMailItem
-            mail.Subject = subject
-            mail.HTMLBody = html_body
-            mail.To = to_address
-            mail.Send()
+            # Draft email
+            email = EmailMessage()
+            email['Subject'] = subject
+            email['From'] = from_address
+            email['To'] = to_address
+            email.set_content(html_body)
+            
+
+            # Connect to Office 365's SMTP server and send email
+            with smtplib.SMTP('smtp.office365.com', 587) as server:
+                server.starttls() # Start TLS encryption
+                server.login(from_address, password)
+                server.send_message(email)
+                
         except Exception as e:
             print(f"Error sending email: {e}")
 
