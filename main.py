@@ -19,9 +19,9 @@ def main():
     # Get env variables
     api_key = os.getenv("API_KEY")
     cse_id = os.getenv("CSE_ID")
-    if not api_key or not cse_id:
-        raise ValueError("Environment variables not found in .env file")
-    
+    email_address = os.getenv("EMAIL_ADDRESS")
+    password = os.getenv("PASSWORD")
+
     # Load config.yaml
     with open('config.yaml', 'r', encoding='utf-8') as f:
         config = yaml.safe_load(f)
@@ -35,7 +35,7 @@ def main():
     searcher = GoogleSearcher(api_key=api_key, cse_id=cse_id, keywords=api_keywords)
     rss_fetcher = RssFetcher(rss_urls=rss_feeds, keywords=rss_keywords)
     scraper = WebScraper()
-    builder = EmailBuilder()
+    builder = EmailBuilder(from_address=email_address, password=password)
 
     # Step 1: Search for new articles and save metadata
     session_articles = run_search(searcher, manager)
