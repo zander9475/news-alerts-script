@@ -56,7 +56,7 @@ class EmailBuilder:
             subject = f"NEWS ALERT: {article.title}"
 
             # Create and send email
-            self._send_email(subject=subject, html_body=html, to_address="bstoll@doc.gov", from_address=self.from_address, password=self.password)
+            self._send_email(subject=subject, html_body=html, to_address="example@domain.com", from_address=self.from_address, password=self.password)
             
             return True
         
