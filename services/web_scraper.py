@@ -38,7 +38,7 @@ class WebScraper:
 
             # Split the string in case a string contains multiple names
             # e.g. "John Smith and Jane Doe" becomes ["John Smith", "Jane Doe"]
-            names = re.split(r'(?:,|and|&)')
+            names = re.split(r'(?:,|and|&)', raw_string)
 
             # Add cleaned names to list
             for name in names:
